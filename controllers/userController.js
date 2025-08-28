@@ -33,7 +33,7 @@
         
         // Actualizar foto de perfil si se proporciona
         if (req.file) {
-            user.fotoPerfil = req.file.filename;
+            user.fotoPerfil = req.file.cloudinaryUrl;
         }
         
         // Si se proporciona una nueva contraseña
@@ -57,12 +57,12 @@
     }
     });
 
-    // @desc    Obtener todos los usuarios
+    // @desc    Obtener todos los usuarios docentes
     // @route   GET /api/users
     // @access  Private/Admin
     export const getAllUsers = asyncHandler(async (req, res) => {
-    const users = await User.find({})
-        .select('numeroControl nombre apellidoPaterno apellidoMaterno email carrera fotoPerfil')
+    const users = await User.find({ role: 'docente' })
+        .select('numeroControl nombre apellidoPaterno apellidoMaterno email carrera fotoPerfil role')
         .populate('carrera', 'nombre')
         .lean();
 

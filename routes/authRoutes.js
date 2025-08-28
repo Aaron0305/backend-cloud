@@ -21,8 +21,8 @@ router.post('/register', uploadProfile, async (req, res) => {  try {
       semestre 
     } = req.body;
 
-    // Guardar el nombre del archivo de la foto si se subió una
-    const fotoPerfil = req.file ? req.file.filename : null;
+    // Guardar la URL de Cloudinary de la foto si se subió una
+    const fotoPerfil = req.file ? req.file.cloudinaryUrl : null;
 
     const userExists = await User.findOne({
       $or: [{ email }, { numeroControl }]
@@ -132,6 +132,7 @@ router.post('/login', async (req, res) => {
       apellidoMaterno: user.apellidoMaterno,
       carrera: user.carrera,
       semestre: user.semestre,
+      fotoPerfil: user.fotoPerfil,
       role: user.role
     };
 

@@ -192,7 +192,7 @@ router.post('/login', async (req, res) => {
       { expiresIn: '24h' }
     );
 
-    // Enviar respuesta exitosa
+    // Enviar respuesta exitosa con el rol del usuario
     res.json({
       success: true,
       token,
@@ -200,7 +200,8 @@ router.post('/login', async (req, res) => {
         id: user._id,
         email: user.email,
         nombre: user.nombre,
-        numeroControl: user.numeroControl
+        numeroControl: user.numeroControl,
+        role: user.role
       }
     });
 

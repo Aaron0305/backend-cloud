@@ -117,17 +117,11 @@ const uploadToCloud = async (req, res, next) => {
             const fileType = req.file.originalname.split('.').pop().toLowerCase();
             
             req.file.cloudinaryUrl = result.viewUrl; // URL para visualización
-            req.file.cloudinaryDownloadUrl = result.downloadUrl; // URL para descarga
             req.file.cloudinaryId = result.public_id;
-            req.file.originalName = req.file.originalname;
+            req.file.displayName = result.displayName; // Nombre para mostrar
             req.file.mimeType = req.file.mimetype;
             req.file.fileSize = req.file.size;
             req.file.fileType = fileType;
-            
-            // Para PDFs, asegurar que la URL de visualización tenga los parámetros correctos
-            if (fileType === 'pdf') {
-                req.file.cloudinaryUrl += '#toolbar=0&navpanes=0&view=FitH';
-            }
 
         } else if (req.files) {
             console.log('📤 Subiendo múltiples archivos:', req.files.length);
@@ -137,9 +131,8 @@ const uploadToCloud = async (req, res, next) => {
                 
                 // Asignar URLs y metadatos
                 file.cloudinaryUrl = result.viewUrl; // URL para visualización
-                file.cloudinaryDownloadUrl = result.downloadUrl; // URL para descarga
                 file.cloudinaryId = result.public_id;
-                file.originalName = file.originalname;
+                file.displayName = result.displayName; // Nombre para mostrar
                 file.mimeType = file.mimetype;
                 file.fileSize = file.size;
                 file.fileType = file.originalname.split('.').pop().toLowerCase();

@@ -2085,15 +2085,14 @@ async function updateAssignmentStatusBasedOnResponses(assignment) {
         // Determinar el nuevo estado base
         let newBaseStatus = assignment.status; // Estado actual por defecto
 
-        // NUEVA LÓGICA CORREGIDA: Solo marcar como completado cuando TODOS los docentes han entregado
+        // NUEVA LÓGICA MEJORADA: Priorizar entregas reales sobre estados pendientes
         
-        // Si aún hay docentes pendientes (sin respuesta), mantener como pendiente
-        if (responseStats.pending > 0) {
-            newBaseStatus = 'pending';
-            console.log('   💡 Hay docentes pendientes -> estado "pending"');
-        } 
-        // Si todos los docentes han respondido (pending = 0)
-        else if (responseStats.pending === 0) {
+        // Verificar si hay entregas reales (completed o completed-late)
+        const hasDeliveries = responseStats.completed > 0 || responseStats.completedLate > 0;
+        
+        if (responseStats.pending === 0) {
+            // Todos los docentes han respondido de alguna manera
+            console.log('   📊 Todos los docentes han respondido');
             
             // Si TODOS entregaron a tiempo
             if (responseStats.completed === assignment.assignedTo.length) {
@@ -2119,9 +2118,35 @@ async function updateAssignmentStatusBasedOnResponses(assignment) {
             }
             // Caso mixto: algunos entregaron, otros no-entregados
             else {
-                newBaseStatus = 'pending';
-                console.log('   � Mezcla de estados, algunos no entregaron -> mantener "pending"');
+                // Si hay al menos una entrega a tiempo, priorizar ese estado
+                if (responseStats.completed > 0) {
+                    newBaseStatus = 'completed';
+                    console.log('   ✅ Hay entregas a tiempo en mezcla -> estado "completed"');
+                } else if (responseStats.completedLate > 0) {
+                    newBaseStatus = 'completed-late';
+                    console.log('   ⚠️ Solo entregas tardías en mezcla -> estado "completed-late"');
+                } else {
+                    // Solo hay no-entregados (este caso ya se maneja arriba, pero por seguridad)
+                    newBaseStatus = 'not-delivered';
+                    console.log('   ❌ Solo no-entregados -> estado "not-delivered"');
+                }
             }
+        } 
+        // Si aún hay docentes pendientes, pero algunos ya han entregado
+        else if (hasDeliveries) {
+            // Priorizar las entregas reales sobre los pendientes
+            if (responseStats.completed > 0) {
+                newBaseStatus = 'completed';
+                console.log('   ✅ Hay entregas a tiempo (algunos pendientes) -> estado "completed"');
+            } else if (responseStats.completedLate > 0) {
+                newBaseStatus = 'completed-late';
+                console.log('   ⚠️ Hay entregas tardías (algunos pendientes) -> estado "completed-late"');
+            }
+        }
+        // Si solo hay pendientes y no-entregados (sin entregas reales)
+        else {
+            newBaseStatus = 'pending';
+            console.log('   🔄 Solo pendientes y/o no-entregados -> mantener "pending"');
         }
 
         // Actualizar solo si cambió
