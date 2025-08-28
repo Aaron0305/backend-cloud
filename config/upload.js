@@ -1,20 +1,9 @@
 import path from 'path';
-import fs from 'fs';
 
-// Crear directorio de uploads si no existe
-const createUploadDirs = () => {  const dirs = [
-    'uploads',
-    'uploads/evidencias',
-    'uploads/perfiles'
-  ];
-
-  dirs.forEach(dir => {
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-      // Establecer permisos 755 para Linux/Mac (no afecta a Windows)
-      fs.chmodSync(dir, 0o755);
-    }
-  });
+// Configuración para Cloudinary - No necesitamos crear directorios locales
+const createUploadDirs = () => {
+  // No crear directorios locales en Vercel
+  console.log('📁 Usando Cloudinary para almacenamiento de archivos');
 };
 
 export const uploadConfig = {

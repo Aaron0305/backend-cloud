@@ -1,23 +1,9 @@
 import DailyRecord from '../models/DailyRecord.js';
 import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
+import cloudinary from '../config/cloudinary.js';
 
-// Configuración de multer para subir archivos
-const storage = multer.diskStorage({
-  destination: function(req, file, cb) {
-    const dir = 'uploads/evidencias';
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-    cb(null, dir);
-  },
-  filename: function(req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const ext = path.extname(file.originalname);
-    cb(null, uniqueSuffix + ext);
-  }
-});
+// Configuración de multer para Cloudinary - usar memoria en lugar de disco
+const storage = multer.memoryStorage();
 
 export const upload = multer({ storage: storage });
 
@@ -48,13 +34,47 @@ export const createRecord = async (req, res) => {
 
     // Las observaciones son opcionales, así que no se incluyen en la validación
 
-    // Procesar archivos subidos
-    const evidencias = req.files ? req.files.map(file => ({
-      nombre: file.originalname,
-      url: `/evidencias/${file.filename}`,
-      tipo: file.mimetype,
-      ruta: file.path
-    })) : [];    const nuevoRegistro = new DailyRecord({
+    // Procesar archivos subidos a Cloudinary
+    let evidencias = [];
+    if (req.files && req.files.length > 0) {
+      try {
+        const uploadPromises = req.files.map(async (file) => {
+          const base64Data = file.buffer.toString('base64');
+          const uploadResult = await new Promise((resolve, reject) => {
+            cloudinary.uploader.upload(
+              `data:${file.mimetype};base64,${base64Data}`,
+              {
+                folder: 'evidencias',
+                resource_type: 'auto',
+                public_id: `${Date.now()}_${file.originalname.split('.')[0]}`,
+                overwrite: true,
+                use_filename: true,
+                unique_filename: true
+              },
+              (error, result) => {
+                if (error) reject(error);
+                else resolve(result);
+              }
+            );
+          });
+
+          return {
+            nombre: file.originalname,
+            url: uploadResult.secure_url,
+            tipo: file.mimetype,
+            cloudinaryId: uploadResult.public_id
+          };
+        });
+
+        evidencias = await Promise.all(uploadPromises);
+      } catch (uploadError) {
+        console.error('Error al subir archivos a Cloudinary:', uploadError);
+        return res.status(500).json({
+          success: false,
+          message: 'Error al subir los archivos'
+        });
+      }
+    }    const nuevoRegistro = new DailyRecord({
       usuario: req.user._id,
       fecha: new Date(fecha),
       horaEntrada,

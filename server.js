@@ -45,8 +45,18 @@ app.use((req, res, next) => {
     next();
 });
 
-// Rutas estáticas
-app.use('/uploads', express.static('uploads'));
+// Health check endpoint
+app.get('/health', (req, res) => {
+    res.json({
+        status: 'OK',
+        message: 'Server is running',
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development'
+    });
+});
+
+// Rutas estáticas - Comentado porque usamos Cloudinary
+// app.use('/uploads', express.static('uploads'));
 
 // Rutas de la API
 app.use('/api/auth', authRoutes);
@@ -68,11 +78,16 @@ const PORT = process.env.PORT || 3001;
 connectDB().then(() => {
     httpServer.listen(PORT, () => {
         console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
-        console.log('Límite de archivos actualizado a 50MB'); // Cambio para forzar reinicio
+        console.log('✅ Configurado para usar Cloudinary en lugar de almacenamiento local');
         
         // Iniciar el servicio de asignaciones programadas
         setTimeout(() => {
-            startScheduledAssignmentsCron();
+            try {
+                startScheduledAssignmentsCron();
+                console.log('✅ Servicio de asignaciones programadas iniciado');
+            } catch (error) {
+                console.error('⚠️ Error al iniciar asignaciones programadas:', error.message);
+            }
         }, 5000); // Esperar 5 segundos después de que el servidor esté listo
     });
 }).catch(err => {
