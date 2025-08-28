@@ -55,6 +55,32 @@ app.get('/health', (req, res) => {
     });
 });
 
+// Root endpoint
+app.get('/', (req, res) => {
+    res.json({
+        message: 'Backend API is running',
+        version: '1.0.0',
+        timestamp: new Date().toISOString(),
+        endpoints: {
+            health: '/health',
+            auth: '/api/auth',
+            users: '/api/users',
+            assignments: '/api/assignments',
+            dailyRecords: '/api/daily-records',
+            files: '/api/files'
+        }
+    });
+});
+
+// Favicon endpoints to prevent 404 errors
+app.get('/favicon.ico', (req, res) => {
+    res.status(204).end(); // No content
+});
+
+app.get('/favicon.png', (req, res) => {
+    res.status(204).end(); // No content
+});
+
 // Rutas estáticas - Comentado porque usamos Cloudinary
 // app.use('/uploads', express.static('uploads'));
 
