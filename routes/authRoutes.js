@@ -245,7 +245,7 @@ router.post('/forgot-password', async (req, res) => {
         ...(process.env.NODE_ENV === 'development' && {
           dev_info: {
             resetToken,
-            resetUrl: `${process.env.FRONTEND_URL || 'https://frontend-opal-omega-97.vercel.app'}/reset-password?token=${resetToken}`
+            resetUrl: `https://frontend-opal-omega-97.vercel.app/reset-password?token=${resetToken}`
           }
         })
       });
