@@ -9,7 +9,7 @@ class NotificationService {
   initialize(server) {
     this.io = new Server(server, {
       cors: {
-        origin: process.env.CLIENT_URL || 'http://localhost:5173',
+        origin: process.env.CLIENT_URL || 'https://frontend-opal-omega-97.vercel.app',
         methods: ['GET', 'POST']
       }
     });
